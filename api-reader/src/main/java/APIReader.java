@@ -23,7 +23,7 @@ public class APIReader {
     Gson gson = new Gson();
     // TTM = trailing twelve months
     System.out.println(
-        "Symbol\tCompany\tNum_Employees\tRevenue_Million_TTM\tprofit_Million_TTM\tenterprise_val_Million");
+        "Symbol\tCompany\tNum_Employees\tRevenue_Million_TTM\tprofit_Million_TTM\texpanse_million\tenterprise_val_Million");
     while (scn.hasNext()) {
       String[] tickInfo = scn.nextLine().split("\t");
       String profileData = getURLContent(tickInfo[0]);
@@ -46,11 +46,12 @@ public class APIReader {
         int million = 1_000_000;
         System.out.println(
             tickInfo[0] + "\t" + tickInfo[1] + "\t" + numEmp.intValue() + "\t" + (int) (revenue
-                / million) + "\t" + profit / million + "\t" + enterpriseVal / million);
+                / million) + "\t" + profit / million + "\t" + (int)(revenue - profit) + "\t"
+                + enterpriseVal / million);
         //        System.out.println(revenue);
       } catch (Exception e) {
         //        System.err.println(symbol);
-//        e.printStackTrace();
+        //        e.printStackTrace();
       }
 
     }
