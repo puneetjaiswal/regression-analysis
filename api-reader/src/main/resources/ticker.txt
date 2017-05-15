@@ -118,4 +118,4 @@ TGT	Target Corp
 HD	The home depot
 UPS	United Parcel Service INC
 FDX	Fedex
-
+ORCL	Oracle Corp

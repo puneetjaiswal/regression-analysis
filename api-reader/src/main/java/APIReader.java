@@ -46,7 +46,7 @@ public class APIReader {
         int million = 1_000_000;
         System.out.println(
             tickInfo[0] + "\t" + tickInfo[1] + "\t" + numEmp.intValue() + "\t" + (int) (revenue
-                / million) + "\t" + profit / million + "\t" + (int)(revenue - profit) + "\t"
+                / million) + "\t" + profit / million + "\t" + (int)((revenue - profit)/million) + "\t"
                 + enterpriseVal / million);
         //        System.out.println(revenue);
       } catch (Exception e) {
