@@ -108,49 +108,101 @@ antilog<-function(lx,base)
 plot(revenue_lm5$fitted.values,log(companyData$Revenue_Million_TTM))
 abline(0,1)
 
-# Now lets predict revenue for HORTONWORKS, INC. (HDP) - Nasdaq
-# num_emp = 1080, enterprise_val = 435.78M, profit =112.29M, Observed revenue = 199.09M, expanse = revenue - profit = 86.8 M
-newdata = list(Num_Employees=1080, expanse_million= 86.8, enterprise_val_Million=435.78)
-logRevenue = predict(revenue_lm5,newdata, interval = "confidence", level = 0.95)
-logRevenue
-antilog(logRevenue, exp(1))
-
-# Now lets predict revenue for Oracle Corporation (ORCL) - NYSE
-# num_emp = 136000, enterprise_val = 180.43B, profit = 	29.57B, Observed revenue = 37.43B, expanse = revenue - profit = 7.86B
-newdata = list(Num_Employees=136000, expanse_million= 7860, enterprise_val_Million=180430)
-logRevenue = predict(revenue_lm5,newdata, interval = "confidence", level = 0.95)
-logRevenue
-antilog(logRevenue, exp(1))
-
-# Now lets predict revenue for BOX INC (BOX) - NYSE
-# num_emp = 1495, enterprise_val = 2.22B, profit = 	286.48M, Observed revenue = 398.61M, expanse = revenue - profit = 112.13M
-newdata = list(Num_Employees=1495, expanse_million= 112.13, enterprise_val_Million=2220)
-logRevenue = predict(revenue_lm5,newdata, interval = "confidence", level = 0.95)
-logRevenue
-antilog(logRevenue, exp(1))
-
-# Now lets predict revenue for Splunk Inc. (SPLK) - NasdaqGS
-# num_emp = 2700, enterprise_val = 8.3B, Observed revenue = 949.96M, profit = 758.9M, expanse = revenue - profit = 191.06M
-newdata = list(Num_Employees=2700, expanse_million= 191.06, enterprise_val_Million=8300)
-logRevenue = predict(revenue_lm5,newdata, interval = "confidence", level = 0.95)
-logRevenue
-antilog(logRevenue, exp(1))
-
-# Now lets predict revenue for The Boeing Company (BA) - NYSE
-# num_emp = 150500, enterprise_val = 112.62B, Observed revenue = 92.91B, profit = 13.78B, expanse = revenue - profit = 79.13B
-newdata = list(Num_Employees=150500, expanse_million= 79130, enterprise_val_Million=112620)
-logRevenue = predict(revenue_lm5,newdata, interval = "confidence", level = 0.95)
-logRevenue
-antilog(logRevenue, exp(1))
 
 ######## Running AIC to determine best model ############
 nullModel <- lm(log(revenue_million_TTM) ~ 1, companyData)
 summary(nullModel)
 
-fullModel <- lm(log(revenue_million_TTM) ~ log(num_employees)+log(expense_million)+log(enterprise_val_Million)+ log(num_employees) * log(expense_million)+ log(num_employees) * log(enterprise_val_Million), companyData)
+fullModel0 <- lm(log(revenue_million_TTM) ~ log(num_employees)+log(expense_million)+log(enterprise_val_Million), companyData)
+summary(fullModel0)
+
+fullModel <- lm(log(revenue_million_TTM) ~ log(num_employees)+log(expense_million)+log(enterprise_val_Million)+ log(num_employees) * log(expense_million)+ log(num_employees) * log(enterprise_val_Million)+log(expense_million) * log(enterprise_val_Million), companyData)
 summary(fullModel)
 
 step(nullModel, scope=list(lower=nullModel, upper=fullModel), direction="forward")
 
-finalModel <-  lm(log(revenue_million_TTM) ~ log(expense_million) + log(enterprise_val_Million) + log(num_employees) + log(enterprise_val_Million):log(num_employees), data=companyData)
+finalModel <-  lm(log(revenue_million_TTM) ~ log(expense_million) + log(enterprise_val_Million) + log(num_employees) + log(enterprise_val_Million)*log(num_employees), data=companyData)
 summary(finalModel)
+plot(finalModel)
+hist(finalModel$residuals)
+
+shapiro.test(finalModel$residuals)
+
+
+install.packages("car")
+library(car)
+scatterplotMatrix(~log(revenue_million_TTM) + log(expense_million) + log(enterprise_val_Million) + log(num_employees) + log(enterprise_val_Million)*log(num_employees), data=companyData)
+
+marginalModelPlots(finalModel)
+
+
+qqPlot(finalModel)
+ncvTest(finalModel)
+leveragePlots(finalModel)
+residualPlots(finalModel)
+influencePlot(finalModel, id.n=2)
+
+
+# Now lets predict revenue for Oracle Corporation (ORCL) - NYSE
+# num_emp = 136000, enterprise_val = 180.43B, profit = 	29.57B, Observed revenue = 37.43B, expanse = revenue - profit = 7.86B
+newdata = list(num_employees=136000, expense_million= 7860, enterprise_val_Million=180430)
+logRevenue = predict(finalModel,newdata, interval = "confidence", level = 0.95)
+logRevenue
+antilog(logRevenue, exp(1))
+
+# Now lets predict revenue for The Boeing Company (BA) - NYSE
+#num_emp = 150500, enterprise_val = 112.62B, Observed revenue = 92.91B, profit = 13.78B, expense = revenue - profit = 79.13B
+newdata = list(num_employees=150500, expense_million= 79130, enterprise_val_Million=112620)
+logRevenue = predict(finalModel,newdata, interval = "confidence", level = 0.95)
+logRevenue
+antilog(logRevenue, exp(1))
+
+########### Under performers #############
+# Now lets predict revenue for HORTONWORKS, INC. (HDP) - Nasdaq
+# num_emp = 1080, enterprise_val = 435.78M, profit =112.29M, Observed revenue = 199.09M, expanse = revenue - profit = 86.8 M
+newdata = list(num_employees=1080, expense_million= 86.8, enterprise_val_Million=435.78)
+logRevenue = predict(finalModel,newdata, interval = "confidence", level = 0.95)
+logRevenue
+antilog(logRevenue, exp(1))
+
+# Now lets predict revenue for BOX INC (BOX) - NYSE
+# num_emp = 1495, enterprise_val = 2.22B, profit = 	286.48M, Observed revenue = 398.61M, expanse = revenue - profit = 112.13M
+newdata = list(num_employees=1495, expense_million= 112.13, enterprise_val_Million=2220)
+logRevenue = predict(finalModel,newdata, interval = "confidence", level = 0.95)
+logRevenue
+antilog(logRevenue, exp(1))
+
+# Now lets predict revenue for Splunk Inc. (SPLK) - NasdaqGS
+# num_emp = 2700, enterprise_val = 8.3B, Observed revenue = 949.96M, profit = 758.9M, expanse = revenue - profit = 191.06M
+newdata = list(num_employees=2700, expense_million= 191.06, enterprise_val_Million=8300)
+logRevenue = predict(finalModel,newdata, interval = "confidence", level = 0.95)
+logRevenue
+antilog(logRevenue, exp(1))
+
+
+# Company	#Employees	enterprise value	expense	Revenue
+# Walmart	2300000	270603	361255	485872
+# Costco	218000	78070	118350	121200
+# Target	323000	30080	66534	69320
+# Sears	140000	834	22556	21050
+newdata = list(num_employees=2300000, expense_million= 361255, enterprise_val_Million=270603)
+logRevenue = predict(finalModel,newdata, interval = "confidence", level = 0.95)
+logRevenue
+antilog(logRevenue, exp(1))
+
+newdata = list(num_employees=218000, expense_million= 118350, enterprise_val_Million=78070)
+logRevenue = predict(finalModel,newdata, interval = "confidence", level = 0.95)
+logRevenue
+antilog(logRevenue, exp(1))
+
+newdata = list(num_employees=323000, expense_million= 66534, enterprise_val_Million=30080)
+logRevenue = predict(finalModel,newdata, interval = "confidence", level = 0.95)
+logRevenue
+antilog(logRevenue, exp(1))
+
+newdata = list(num_employees=140000, expense_million= 22556, enterprise_val_Million=834)
+logRevenue = predict(finalModel,newdata, interval = "confidence", level = 0.95)
+logRevenue
+antilog(logRevenue, exp(1))
+
+
